@@ -14,6 +14,8 @@ let room = client.joinOrCreate("poke_world").then(room => {
     return room
 }).catch(e => {
     console.log("JOIN ERROR", e);
+    // Return null or handle the error appropriately so .then() doesn't crash
+    return null;
 });
 
 export {onlinePlayers, room};

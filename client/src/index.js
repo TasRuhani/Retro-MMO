@@ -14,7 +14,7 @@ const Config = {
             gravity: {y: 0}
         }
     },
-    // ✅ ADD THIS DOM OBJECT
+    // This object is required to use HTML elements like the chat input
     dom: {
         createContainer: true
     },

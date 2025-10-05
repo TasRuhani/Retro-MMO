@@ -9,14 +9,13 @@ export default class OnlinePlayer extends Phaser.GameObjects.Sprite {
         this.scene.physics.add.collider(this, config.worldLayer);
 
         this.setTexture("players", "bob_front.png").setScale(1.9, 2.1);
-        this.setDepth(5); // Set player depth
+        this.setDepth(5);
 
         this.map = config.map;
         console.log(`Map of ${config.playerId} is ${this.map}`);
 
         this.body.setOffset(0, 24);
 
-        // Display playerId above player
         this.playerNickname = this.scene.add.text(this.x, this.y, config.playerId, {
             fontSize: '12px',
             color: '#ffffff',
@@ -24,14 +23,13 @@ export default class OnlinePlayer extends Phaser.GameObjects.Sprite {
             padding: { x: 2, y: 1 }
         })
         .setOrigin(0.5, 1.5)
-        .setDepth(20); // Set depth to be on top
+        .setDepth(20);
     }
 
     isWalking(position, x, y) {
         this.anims.play(`onlinePlayer-${position}-walk`, true);
         this.setPosition(x, y);
 
-        // Update nickname position
         this.playerNickname.x = this.x;
         this.playerNickname.y = this.y - (this.height / 2);
     }
@@ -42,7 +40,6 @@ export default class OnlinePlayer extends Phaser.GameObjects.Sprite {
     }
 
     destroy() {
-        // Make sure to destroy the nickname text object when the player sprite is destroyed
         if (this.playerNickname) {
             this.playerNickname.destroy();
         }

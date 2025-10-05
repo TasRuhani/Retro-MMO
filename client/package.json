@@ -1,7 +1,7 @@
 {
   "name": "pokemmo-phaser3-colyseus-multiplayer-game",
   "version": "1.0.0",
-  "description": "A online Pokemon MMO game build with Phaser 3 & Colyseus.io",
+  "description": "A online Retro MMO game build with Phaser 3 & Colyseus.io",
   "main": "src/index.js",
   "scripts": {
     "build": "webpack --config webpack/config.prod.js",

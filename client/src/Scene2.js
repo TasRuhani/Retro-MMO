@@ -4,7 +4,7 @@ import OnlinePlayer from "./OnlinePlayer";
 import Player from "./Player";
 
 let cursors;
-const CHAT_TRIGGER_RADIUS = 100; // Distance in pixels to trigger chat UI
+const CHAT_TRIGGER_RADIUS = 50; // Distance in pixels to trigger chat UI
 
 export class Scene2 extends Phaser.Scene {
     constructor() {

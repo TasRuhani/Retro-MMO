@@ -4,7 +4,7 @@ import OnlinePlayer from "./OnlinePlayer";
 import Player from "./Player";
 
 let cursors;
-const CHAT_TRIGGER_RADIUS = 50; // Distance in pixels to trigger chat UI
+const CHAT_TRIGGER_RADIUS = 40; // Distance in pixels to trigger chat UI
 
 export class Scene2 extends Phaser.Scene {
     constructor() {
@@ -38,10 +38,14 @@ export class Scene2 extends Phaser.Scene {
 
         this.chatContainer = this.add.dom(this.cameras.main.width / 2, this.cameras.main.height - 100)
             .createFromHTML(`
-                <div id="chat-container" style="display: none; width: 420px;">
-                    <div id="chat-log" style="width: 400px; height: 120px; background-color: rgba(0,0,0,0.6); color: white; padding: 10px; overflow-y: scroll; border: 1px solid #555; border-bottom: none; font-family: monospace;"></div>
-                    <input type="text" id="chat-input" placeholder="Type..." maxlength="100" style="width: 400px; padding: 10px; border: 1px solid #555;">
-                </div>
+                <div id="chat-container" style="display: block; width: 200px; position: fixed; left: 0px; bottom: 0;">
+
+  <div id="chat-log" style="width: 100%; height: 120px; background-color: rgba(0,0,0,0.6); color: white; padding: 10px; overflow-y: scroll; border: 1px solid #555; border-bottom: none; font-family: monospace; box-sizing: border-box;">
+  </div>
+
+  <input type="text" id="chat-input" placeholder="Type..." maxlength="100" style="width: 100%; padding: 10px; border: 1px solid #555; box-sizing: border-box;">
+
+</div>
             `)
             .setScrollFactor(0);
         
@@ -110,9 +114,11 @@ export class Scene2 extends Phaser.Scene {
         }).catch(() => console.error("Could not get room connection."));
 
         this.map = this.make.tilemap({ key: this.mapName });
-        const tileset = this.map.addTilesetImage("tuxmon-sample-32px-extruded", "TilesTown");
+        const tileset = this.map.addTilesetImage("op-jec", "TilesTown");
+        this.physics.world.setBounds(0, 0, this.map.widthInPixels, this.map.heightInPixels);
         this.belowLayer = this.map.createLayer("Below Player", tileset, 0, 0);
         this.worldLayer = this.map.createLayer("World", tileset, 0, 0);
+        this.belowLayer = this.map.createLayer("Between", tileset, 0, 0);
         this.aboveLayer = this.map.createLayer("Above Player", tileset, 0, 0);
         this.worldLayer.setCollisionByProperty({ collides: true });
         this.aboveLayer.setDepth(10);
@@ -121,6 +127,7 @@ export class Scene2 extends Phaser.Scene {
         const camera = this.cameras.main;
         camera.startFollow(this.player);
         camera.setBounds(0, 0, this.map.widthInPixels, this.map.heightInPixels);
+        camera.zoom = 1.5;
         cursors = this.input.keyboard.createCursorKeys();
         this.debugGraphics();
         this.movementTimer();

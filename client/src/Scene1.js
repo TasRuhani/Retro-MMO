@@ -1,7 +1,8 @@
 import Phaser from 'phaser';
 
-import TownJSON from "./assets/tilemaps/town.json";
-import TilesTown from "./assets/tilesets/tuxmon-sample-32px-extruded.png";
+import TownJSON from "./assets/tilemaps/op-jec.json";
+// import TilesTown from "./assets/tilesets/tuxmon-sample-32px-extruded.png";
+import TilesTown from "./assets/tilesets/op-jec.png";
 import Route1JSON from "./assets/tilemaps/route1";
 import AtlasJSON from "./assets/atlas/atlas";
 import AtlasPNG from "./assets/atlas/atlas.png";

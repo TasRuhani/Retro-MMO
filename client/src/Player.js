@@ -64,8 +64,8 @@ export default class Player extends Phaser.GameObjects.Sprite {
         this.playerNickname.x = this.x;
         this.playerNickname.y = this.y - (this.height / 2);
 
-        this.doorInteraction();
-        this.worldInteraction();
+    //     this.doorInteraction();
+    //     this.worldInteraction();
     }
 
     isMoved() {

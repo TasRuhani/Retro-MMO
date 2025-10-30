@@ -4,8 +4,8 @@ import { Scene2 } from "./Scene2";
 
 const Config = {
     type: Phaser.AUTO,
-    width: 1900,
-    height: 450,
+    width: 2000,
+    height: 1000,
     parent: "game-container",
     pixelArt: true,
     physics: {

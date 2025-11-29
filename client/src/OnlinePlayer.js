@@ -16,7 +16,8 @@ export default class OnlinePlayer extends Phaser.GameObjects.Sprite {
 
         this.body.setOffset(0, 24);
 
-        this.playerNickname = this.scene.add.text(this.x, this.y, config.playerId, {
+        const displayName = config.username || config.playerId.substring(0, 8);
+        this.playerNickname = this.scene.add.text(this.x, this.y, displayName, {
             fontSize: '12px',
             color: '#ffffff',
             backgroundColor: '#00000080',

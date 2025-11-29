@@ -72,6 +72,15 @@ exports.PokeWorld = class extends colyseus.Room {
                 }, { except: client });
             }
         });
+
+        // Heartbeat handler to update last_seen_at
+        this.onMessage("heartbeat", async (client) => {
+            try {
+                await userDb.updateLastSeen(client.sessionId);
+            } catch (error) {
+                console.error('Error updating heartbeat:', error);
+            }
+        });
     }
 
     onJoin(client, options) {

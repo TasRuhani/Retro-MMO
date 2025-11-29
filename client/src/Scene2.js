@@ -23,6 +23,12 @@ export class Scene2 extends Phaser.Scene {
 
     create() {
         this.events.on('shutdown', () => {
+            // Clear heartbeat interval
+            if (this.heartbeatInterval) {
+                clearInterval(this.heartbeatInterval);
+                this.heartbeatInterval = null;
+            }
+            
             if (this.room) {
                 this.room.removeAllListeners();
                 console.log("Room listeners removed.");

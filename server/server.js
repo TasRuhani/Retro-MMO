@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const colyseus = require('colyseus');
 const monitor = require("@colyseus/monitor").monitor;
+const { initializeDatabase, userDb } = require('./database');
 // const socialRoutes = require("@colyseus/social/express").default;
 
 const PokeWorld = require('./rooms/PokeWorld').PokeWorld;
@@ -38,5 +39,15 @@ gameServer.define("poke_world", PokeWorld)
 // register colyseus monitor AFTER registering your room handlers
 app.use("/colyseus", monitor(gameServer));
 
-gameServer.listen(port);
-console.log(`Listening on ws://localhost:${port}`)
+// Initialize database and start server
+(async () => {
+    try {
+        await initializeDatabase();
+        await userDb.cleanupStaleSessions();
+        gameServer.listen(port);
+        console.log(`Listening on ws://localhost:${port}`);
+    } catch (error) {
+        console.error('Failed to start server:', error);
+        process.exit(1);
+    }
+})();

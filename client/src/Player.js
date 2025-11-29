@@ -106,7 +106,9 @@ export default class Player extends Phaser.GameObjects.Sprite {
                     const prop = world.properties.find(p => p.name === 'playerTexturePosition');
                     if (prop) playerTexturePosition = prop.value;
                 }
-                room.then(r => r && r.send("PLAYER_CHANGED_MAP", { map: world.name }));
+                if (room) {
+                    room.send("PLAYER_CHANGED_MAP", { map: world.name });
+                }
                 this.scene.scene.restart({ map: world.name, playerTexturePosition });
             }
         });

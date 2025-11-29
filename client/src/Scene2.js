@@ -60,64 +60,72 @@ export class Scene2 extends Phaser.Scene {
         inputElement.addEventListener('keydown', (event) => {
             if (event.key === 'Enter') {
                 const message = inputElement.value;
-                if (message) {
-                    room.then(r => r && r.send("chat", message));
+                if (message && room) {
+                    room.send("chat", message);
                     inputElement.value = '';
                 }
             }
         });
 
-        room.then(connectedRoom => {
-            if (!connectedRoom) { 
-                console.error("Could not connect to room! Skipping message listeners.");
-                return; 
+        if (!room) { 
+            console.error("Could not connect to room! Skipping message listeners.");
+            return; 
+        }
+        
+        this.room = room;
+
+        // Start heartbeat to update last_seen_at
+        this.heartbeatInterval = setInterval(() => {
+            if (this.room && this.room.connection.isOpen) {
+                this.room.send("heartbeat");
             }
-            
-            this.room = connectedRoom;
-            connectedRoom.onMessage("show_chat_bubble", (data) => this.displayChatMessage(data.senderId, data.message));
-            connectedRoom.onMessage("CURRENT_PLAYERS", (data) => {
-                Object.keys(data.players).forEach(playerId => {
-                    let player = data.players[playerId];
-                    if (playerId !== connectedRoom.sessionId && !onlinePlayers[player.sessionId]) {
-                        onlinePlayers[player.sessionId] = new OnlinePlayer({
-                            scene: this, worldLayer: this.worldLayer, playerId: player.sessionId,
-                            map: player.map, x: player.x, y: player.y
-                        });
-                    }
-                });
-            });
-            connectedRoom.onMessage("PLAYER_JOINED", (data) => {
-                if (data.sessionId && data.sessionId !== connectedRoom.sessionId && !onlinePlayers[data.sessionId]) {
-                    onlinePlayers[data.sessionId] = new OnlinePlayer({
-                        scene: this, worldLayer: this.worldLayer, playerId: data.sessionId,
-                        map: data.map, x: data.x, y: data.y
+        }, 30000); // Every 30 seconds
+        
+        room.onMessage("show_chat_bubble", (data) => this.displayChatMessage(data.senderId, data.message, data.username));
+        room.onMessage("CURRENT_PLAYERS", (data) => {
+            Object.keys(data.players).forEach(playerId => {
+                let player = data.players[playerId];
+                if (playerId !== room.sessionId && !onlinePlayers[player.sessionId]) {
+                    onlinePlayers[player.sessionId] = new OnlinePlayer({
+                        scene: this, worldLayer: this.worldLayer, playerId: player.sessionId,
+                        username: player.username,
+                        map: player.map, x: player.x, y: player.y
                     });
                 }
             });
-            connectedRoom.onMessage("PLAYER_LEFT", (data) => {
-                if (data.sessionId && onlinePlayers[data.sessionId]) {
-                    onlinePlayers[data.sessionId].destroy();
-                    delete onlinePlayers[data.sessionId];
-                }
-            });
-            connectedRoom.onMessage("PLAYER_MOVED", (data) => {
-                if (onlinePlayers[data.sessionId] && this.mapName === data.map) {
-                    onlinePlayers[data.sessionId].isWalking(data.position, data.x, data.y);
-                }
-            });
-            connectedRoom.onMessage("PLAYER_MOVEMENT_ENDED", (data) => {
-                if (onlinePlayers[data.sessionId] && this.mapName === data.map) {
-                    onlinePlayers[data.sessionId].stopWalking(data.position);
-                }
-            });
-            connectedRoom.onMessage("PLAYER_CHANGED_MAP", (data) => {
-                if (data.sessionId && onlinePlayers[data.sessionId] && data.map !== this.mapName) {
-                    onlinePlayers[data.sessionId].destroy();
-                    delete onlinePlayers[data.sessionId];
-                }
-            });
-            connectedRoom.send("GET_PLAYERS");
-        }).catch(() => console.error("Could not get room connection."));
+        });
+        room.onMessage("PLAYER_JOINED", (data) => {
+            if (data.sessionId && data.sessionId !== room.sessionId && !onlinePlayers[data.sessionId]) {
+                onlinePlayers[data.sessionId] = new OnlinePlayer({
+                    scene: this, worldLayer: this.worldLayer, playerId: data.sessionId,
+                    username: data.username,
+                    map: data.map, x: data.x, y: data.y
+                });
+            }
+        });
+        room.onMessage("PLAYER_LEFT", (data) => {
+            if (data.sessionId && onlinePlayers[data.sessionId]) {
+                onlinePlayers[data.sessionId].destroy();
+                delete onlinePlayers[data.sessionId];
+            }
+        });
+        room.onMessage("PLAYER_MOVED", (data) => {
+            if (onlinePlayers[data.sessionId] && this.mapName === data.map) {
+                onlinePlayers[data.sessionId].isWalking(data.position, data.x, data.y);
+            }
+        });
+        room.onMessage("PLAYER_MOVEMENT_ENDED", (data) => {
+            if (onlinePlayers[data.sessionId] && this.mapName === data.map) {
+                onlinePlayers[data.sessionId].stopWalking(data.position);
+            }
+        });
+        room.onMessage("PLAYER_CHANGED_MAP", (data) => {
+            if (data.sessionId && onlinePlayers[data.sessionId] && data.map !== this.mapName) {
+                onlinePlayers[data.sessionId].destroy();
+                delete onlinePlayers[data.sessionId];
+            }
+        });
+        room.send("GET_PLAYERS");
 
         this.map = this.make.tilemap({ key: this.mapName });
         const tileset = this.map.addTilesetImage("op-jec", "TilesTown");
@@ -153,15 +161,17 @@ export class Scene2 extends Phaser.Scene {
             let playerMoved = this.player.isMoved();
             let position = this.player.container.oldPosition.direction;
 
-            if (playerMoved && this.socketKey && position) {
-                room.then(r => r && r.send("PLAYER_MOVED", { position, x: this.player.x, y: this.player.y }));
+            if (playerMoved && this.socketKey && position && room) {
+                room.send("PLAYER_MOVED", { position, x: this.player.x, y: this.player.y });
                 this.socketKey = false;
             }
 
-            if (Phaser.Input.Keyboard.JustUp(cursors.left)) room.then(r => r && r.send("PLAYER_MOVEMENT_ENDED", { position: 'left' }));
-            else if (Phaser.Input.Keyboard.JustUp(cursors.right)) room.then(r => r && r.send("PLAYER_MOVEMENT_ENDED", { position: 'right' }));
-            else if (Phaser.Input.Keyboard.JustUp(cursors.up)) room.then(r => r && r.send("PLAYER_MOVEMENT_ENDED", { position: 'back' }));
-            else if (Phaser.Input.Keyboard.JustUp(cursors.down)) room.then(r => r && r.send("PLAYER_MOVEMENT_ENDED", { position: 'front' }));
+            if (room) {
+                if (Phaser.Input.Keyboard.JustUp(cursors.left)) room.send("PLAYER_MOVEMENT_ENDED", { position: 'left' });
+                else if (Phaser.Input.Keyboard.JustUp(cursors.right)) room.send("PLAYER_MOVEMENT_ENDED", { position: 'right' });
+                else if (Phaser.Input.Keyboard.JustUp(cursors.up)) room.send("PLAYER_MOVEMENT_ENDED", { position: 'back' });
+                else if (Phaser.Input.Keyboard.JustUp(cursors.down)) room.send("PLAYER_MOVEMENT_ENDED", { position: 'front' });
+            }
         }
 
         this.chatBubbles.forEach((bubbleInfo, sessionId) => {

@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { room } from './SocketServer';
+import { room, getSessionData } from './SocketServer';
 
 export default class Player extends Phaser.GameObjects.Sprite {
     constructor(config) {
@@ -27,7 +27,9 @@ export default class Player extends Phaser.GameObjects.Sprite {
             this.readyToChangeMap = true; // Allow map changing after half a second
         });
 
-        this.playerNickname = this.scene.add.text(this.x, this.y, 'Me', {
+        const sessionData = getSessionData();
+        const displayName = sessionData.username || 'Me';
+        this.playerNickname = this.scene.add.text(this.x, this.y, displayName, {
             fontSize: '12px',
             color: '#00ff00',
             backgroundColor: '#00000080',

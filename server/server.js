@@ -28,6 +28,56 @@ gameServer.define("poke_world", PokeWorld)
 
 // ToDo: Create a 'chat' room for realtime chatting
 
+// Authentication API endpoints
+app.post('/api/login', async (req, res) => {
+    try {
+        const { name } = req.body;
+        
+        if (!name || name.trim().length === 0) {
+            return res.status(400).json({ success: false, error: 'Name is required' });
+        }
+
+        if (name.trim().length > 50) {
+            return res.status(400).json({ success: false, error: 'Name must be 50 characters or less' });
+        }
+
+        // Generate a temporary session ID for the login request
+        const tempSessionId = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        
+        const result = await userDb.login(name.trim(), tempSessionId);
+        
+        if (result.success) {
+            res.json({
+                success: true,
+                sessionId: tempSessionId,
+                username: result.user.name,
+                newUser: result.newUser || false
+            });
+        } else {
+            res.status(409).json(result);
+        }
+    } catch (error) {
+        console.error('Login error:', error);
+        res.status(500).json({ success: false, error: 'Server error during login' });
+    }
+});
+
+app.post('/api/logout', async (req, res) => {
+    try {
+        const { sessionId } = req.body;
+        
+        if (!sessionId) {
+            return res.status(400).json({ success: false, error: 'Session ID is required' });
+        }
+
+        await userDb.logout(sessionId);
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Logout error:', error);
+        res.status(500).json({ success: false, error: 'Server error during logout' });
+    }
+});
+
 /**
  * Register @colyseus/social routes
  *

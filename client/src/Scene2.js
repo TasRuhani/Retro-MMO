@@ -209,7 +209,7 @@ export class Scene2 extends Phaser.Scene {
         }
     }
 
-    displayChatMessage(senderId, message) {
+    displayChatMessage(senderId, message, username) {
         if (!this.room) return;
         let targetSprite = (senderId === this.room.sessionId) ? this.player : onlinePlayers[senderId];
         if (!targetSprite) return;
@@ -232,7 +232,7 @@ export class Scene2 extends Phaser.Scene {
         const chatLog = document.getElementById('chat-log');
         if (chatLog) {
             const messageElement = document.createElement('p');
-            const displayName = senderId.substring(0, 6); 
+            const displayName = username || senderId.substring(0, 6); 
             messageElement.innerHTML = `<strong>${displayName}:</strong> ${message}`;
             messageElement.style.margin = '0 0 5px 0';
             chatLog.appendChild(messageElement);

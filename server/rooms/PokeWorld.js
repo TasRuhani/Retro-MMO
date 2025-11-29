@@ -1,4 +1,5 @@
 const colyseus = require('colyseus');
+const { userDb } = require('../database');
 
 // The distance in pixels for chat to be visible.
 const PROXIMITY_RADIUS = 250; 
@@ -34,6 +35,7 @@ exports.PokeWorld = class extends colyseus.Room {
             nearbyClients.forEach(c => {
                 c.send("show_chat_bubble", {
                     senderId: client.sessionId,
+                    username: sender.username,
                     message: message.trim()
                 });
             });
@@ -74,15 +76,29 @@ exports.PokeWorld = class extends colyseus.Room {
 
     onJoin(client, options) {
         console.log('ON JOIN', client.sessionId);
+        // Store username from options if provided
+        const username = options.username || client.sessionId;
         this.players[client.sessionId] = {
-            sessionId: client.sessionId, map: 'town', x: 352, y: 1216
+            sessionId: client.sessionId,
+            username: username,
+            map: 'town',
+            x: 352,
+            y: 1216
         };
         // Announce the new player to all other clients
         this.broadcast("PLAYER_JOINED", { ...this.players[client.sessionId] }, { except: client });
     }
 
-    onLeave(client, consented) {
+    async onLeave(client, consented) {
         console.log('ON LEAVE', client.sessionId);
+        
+        // Update database to mark user as offline
+        try {
+            await userDb.logout(client.sessionId);
+        } catch (error) {
+            console.error('Error logging out user:', error);
+        }
+        
         if (this.players[client.sessionId]) {
             this.broadcast("PLAYER_LEFT", { 
                 sessionId: client.sessionId, 

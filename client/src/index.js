@@ -2,8 +2,17 @@ import Phaser from "phaser";
 import { Scene1 } from "./Scene1";
 import { Scene2 } from "./Scene2";
 import { login, logout } from "./SocketServer";
+import homeBackground from './assets/images/home.jpg';
 
 let game = null;
+
+// Set background image for login screen
+const loginScreen = document.getElementById('login-screen');
+if (loginScreen) {
+    loginScreen.style.backgroundImage = `url(${homeBackground})`;
+    loginScreen.style.backgroundSize = 'cover';
+    loginScreen.style.backgroundPosition = 'center';
+}
 
 // Handle login form submission
 document.getElementById('login-form').addEventListener('submit', async (e) => {

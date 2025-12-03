@@ -15,6 +15,7 @@ yarn-debug.log
 .env.development.local
 .env.test.local
 .env.production.local
+# .env.example
 
 # Build output
 # This folder is generated automatically when you build your client project.

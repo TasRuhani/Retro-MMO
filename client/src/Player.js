@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { room } from './SocketServer';
+import { room, getSessionData } from './SocketServer';
 
 export default class Player extends Phaser.GameObjects.Sprite {
     constructor(config) {
@@ -27,7 +27,9 @@ export default class Player extends Phaser.GameObjects.Sprite {
             this.readyToChangeMap = true; // Allow map changing after half a second
         });
 
-        this.playerNickname = this.scene.add.text(this.x, this.y, 'Me', {
+        const sessionData = getSessionData();
+        const displayName = sessionData.username || 'Me';
+        this.playerNickname = this.scene.add.text(this.x, this.y, displayName, {
             fontSize: '12px',
             color: '#00ff00',
             backgroundColor: '#00000080',
@@ -104,7 +106,9 @@ export default class Player extends Phaser.GameObjects.Sprite {
                     const prop = world.properties.find(p => p.name === 'playerTexturePosition');
                     if (prop) playerTexturePosition = prop.value;
                 }
-                room.then(r => r && r.send("PLAYER_CHANGED_MAP", { map: world.name }));
+                if (room) {
+                    room.send("PLAYER_CHANGED_MAP", { map: world.name });
+                }
                 this.scene.scene.restart({ map: world.name, playerTexturePosition });
             }
         });

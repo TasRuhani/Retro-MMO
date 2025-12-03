@@ -21,17 +21,131 @@
       /* (Optional) Give the container some visible properties 
          so you can see it's centered */
       #game-container {
-        width: 900px;  /* Example width */
-        height: 450; /* Example height */
-        background-color: #333; /* Example background */
-        color: white; /* Example text color */
-        text-align: center; /* Center text inside the container */
-        padding: 20px;
+        width: 100%;
+        height: 100%;
+        background-color: #333;
+        color: white;
+        text-align: center;
+        padding: 0; /* Remove padding so canvas fits properly */
+        position: relative;
+      }
+
+      /* Login screen styles */
+      #login-screen {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        font-family: Arial, sans-serif;
+      }
+
+      #login-screen h1 {
+        margin-bottom: 30px;
+        font-size: 48px;
+        color: #4CAF50;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+      }
+
+      #login-form {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        min-width: 300px;
+      }
+
+      #username-input {
+        padding: 12px;
+        font-size: 16px;
+        border: 2px solid #4CAF50;
+        border-radius: 5px;
+        background-color: #222;
+        color: white;
+        text-align: center;
+      }
+
+      #username-input:focus {
+        outline: none;
+        border-color: #66BB6A;
+        box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+      }
+
+      #login-button {
+        padding: 12px;
+        font-size: 18px;
+        font-weight: bold;
+        border: none;
+        border-radius: 5px;
+        background-color: #4CAF50;
+        color: white;
+        cursor: pointer;
+        transition: background-color 0.3s;
+      }
+
+      #login-button:hover {
+        background-color: #66BB6A;
+      }
+
+      #login-button:active {
+        background-color: #388E3C;
+      }
+
+      #login-button:disabled {
+        background-color: #666;
+        cursor: not-allowed;
+      }
+
+      #error-message {
+        color: #ff6b6b;
+        font-size: 14px;
+        min-height: 20px;
+        margin-top: 10px;
+      }
+
+      .hidden {
+        display: none !important;
+      }
+
+      #logout-button {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        padding: 8px 16px;
+        font-size: 14px;
+        border: none;
+        border-radius: 5px;
+        background-color: #f44336;
+        color: white;
+        cursor: pointer;
+        z-index: 1000;
+      }
+
+      #logout-button:hover {
+        background-color: #d32f2f;
       }
     </style>
   </head>
   <body>
     <div id="game-container">
+      <!-- Login Screen -->
+      <div id="login-screen">
+        <h1>Retro MMO</h1>
+        <form id="login-form">
+          <input 
+            type="text" 
+            id="username-input" 
+            placeholder="Enter your username" 
+            maxlength="50"
+            autocomplete="off"
+            required
+          />
+          <button type="submit" id="login-button">Enter Game</button>
+          <div id="error-message"></div>
+        </form>
+      </div>
+      
+      <!-- Logout Button (hidden initially) -->
+      <button id="logout-button" class="hidden">Logout</button>
     </div>
   </body>
 </html>

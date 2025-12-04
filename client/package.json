@@ -4,8 +4,8 @@
   "description": "A online Retro MMO game build with Phaser 3 & Colyseus.io",
   "main": "src/index.js",
   "scripts": {
-    "build": "webpack --config webpack/config.prod.js",
-        "start": "webpack-dev-server --config webpack/base.js --open"
+    "build": "webpack --config webpack/prod.js",
+    "start": "webpack-dev-server --config webpack/base.js --open"
   },
   "license": "MIT",
   "licenseUrl": "http://www.opensource.org/licenses/mit-license.php",
@@ -26,6 +26,7 @@
   },
   "dependencies": {
     "colyseus.js": "^0.15.0",
+    "dotenv": "^17.2.3",
     "phaser": "^3.80.0",
     "socket.io-client": "^2.3.0"
   }

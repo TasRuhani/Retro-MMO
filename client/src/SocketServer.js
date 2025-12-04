@@ -1,5 +1,8 @@
 import * as Colyseus from "colyseus.js";
 
+// For production, you'll replace this with your EC2 IP during build
+const SERVER_IP = '54.252.183.151'; // Change this to your EC2 IP before building
+
 /*================================================
 | Array with current online players
 */
@@ -17,7 +20,7 @@ let sessionData = {
 /*================================================
 | Colyseus connection with server
 */
-var client = new Colyseus.Client('ws://localhost:3000');
+var client = new Colyseus.Client(`ws://${SERVER_IP}:3000`);
 let room = null;
 
 /*================================================
@@ -25,7 +28,7 @@ let room = null;
 */
 async function login(username) {
     try {
-        const response = await fetch('http://localhost:3000/api/login', {
+        const response = await fetch(`http://${SERVER_IP}:3000/api/login`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -63,7 +66,7 @@ async function login(username) {
 async function logout() {
     try {
         if (sessionData.sessionId) {
-            await fetch('http://localhost:3000/api/logout', {
+            await fetch(`http://${SERVER_IP}:3000/api/logout`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

@@ -1,7 +1,14 @@
 import * as Colyseus from "colyseus.js";
 
-// For production, you'll replace this with your EC2 IP during build
-const SERVER_IP = '54.252.183.151'; // Change this to your EC2 IP before building
+/*================================================
+| Determine if running locally or on production
+*/
+const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
+// Use relative URLs - works everywhere!
+const BASE_URL = isLocalhost ? 'http://localhost' : window.location.origin;
+const WS_PROTOCOL = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+const WS_URL = isLocalhost ? 'ws://localhost:3000' : `${WS_PROTOCOL}//${window.location.host}`;
 
 /*================================================
 | Array with current online players
@@ -20,7 +27,7 @@ let sessionData = {
 /*================================================
 | Colyseus connection with server
 */
-var client = new Colyseus.Client(`ws://${SERVER_IP}:3000`);
+var client = new Colyseus.Client(WS_URL);
 let room = null;
 
 /*================================================
@@ -28,7 +35,9 @@ let room = null;
 */
 async function login(username) {
     try {
-        const response = await fetch(`http://${SERVER_IP}:3000/api/login`, {
+        const apiUrl = isLocalhost ? 'http://localhost:3000/api/login' : '/api/login';
+        
+        const response = await fetch(apiUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -66,7 +75,9 @@ async function login(username) {
 async function logout() {
     try {
         if (sessionData.sessionId) {
-            await fetch(`http://${SERVER_IP}:3000/api/logout`, {
+            const apiUrl = isLocalhost ? 'http://localhost:3000/api/logout' : '/api/logout';
+            
+            await fetch(apiUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

@@ -1,0 +1,123 @@
+name: Deploy to EC2
+
+# Trigger on push to main branch
+on:
+  push:
+    branches:
+      - main
+
+# Only run one deployment at a time
+concurrency:
+  group: production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    
+    steps:
+      # Step 1: Checkout code from GitHub
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      # Step 2: Setup Node.js (for building client)
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: client/package-lock.json
+      
+      # Step 3: Build client
+      - name: Build client
+        run: |
+          cd client
+          npm ci
+          npm run build
+          echo "Client built successfully"
+          ls -la dist/
+      
+      # Step 4: Deploy server to EC2
+      - name: Deploy server to EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            echo "Pulling latest code..."
+            cd ~/Retro-MMO/server
+            git pull origin main
+            
+            echo "Installing server dependencies..."
+            npm install --production
+            
+            echo "Restarting server..."
+            pm2 restart retro-mmo-server || pm2 start server.js --name retro-mmo-server
+            
+            echo "Server status:"
+            pm2 status
+            
+            echo "Server deployment complete!"
+      
+      # Step 5: Upload client to EC2
+      - name: Upload client to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "client/dist/*"
+          target: "/home/ubuntu/Retro-MMO/client/dist/"
+          strip_components: 2
+          overwrite: true
+          rm: true
+      
+      # Step 6: Deploy client to nginx
+      - name: Deploy client to nginx
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            echo "Deploying client files..."
+            
+            # Remove old files from nginx
+            sudo rm -rf /var/www/html/*
+            
+            # Copy new files from staging
+            sudo cp -r /home/ubuntu/Retro-MMO/client/dist/* /var/www/html/
+            
+            # Set correct permissions
+            sudo chown -R www-data:www-data /var/www/html/
+            
+            # Verify files were copied
+            echo "Files in /var/www/html:"
+            ls -la /var/www/html/
+            
+            echo "Client deployment complete!"
+      
+      # Step 7: Verify deployment
+      - name: Verify deployment
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            echo "Checking PM2 status..."
+            pm2 status
+            
+            echo "Recent server logs:"
+            pm2 logs retro-mmo-server --lines 20 --nostream
+            
+            echo "Checking nginx..."
+            sudo systemctl status nginx --no-pager | grep Active
+            
+            echo "Checking deployed files..."
+            ls -la /var/www/html/ | head -10
+            
+            echo "Deployment completed successfully!"
+            echo "Game is live at: http://${{ secrets.EC2_HOST }}"

@@ -51,13 +51,26 @@ jobs:
             git pull origin main
             
             echo "Installing server dependencies..."
-            npm install --production
+            npm install
             
-            echo "Restarting server..."
-            pm2 restart retro-mmo-server || pm2 start server.js --name retro-mmo-server
+            echo "Checking if PM2 process exists..."
+            if pm2 describe retro-mmo-server > /dev/null 2>&1; then
+              echo "Restarting existing server..."
+              pm2 restart retro-mmo-server
+            else
+              echo "Starting new server..."
+              pm2 start server.js --name retro-mmo-server
+              pm2 save
+            fi
+            
+            echo "Waiting for server to start..."
+            sleep 5
             
             echo "Server status:"
             pm2 status
+            
+            echo "Recent logs:"
+            pm2 logs retro-mmo-server --lines 30 --nostream
             
             echo "Server deployment complete!"
       
